@@ -21,15 +21,22 @@
                 <h1 class="login-title">Site<span class="accent">2T</span></h1>
                 <p class="login-subtitle">Accès sécurisé par niveaux</p>
 
-                <form id="login-form" class="login-form" autocomplete="off">
+                <!-- Toggle login / register -->
+                <div class="form-tabs">
+                    <button id="tab-login"    class="form-tab active">Connexion</button>
+                    <button id="tab-register" class="form-tab">Inscription</button>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <form id="login-form" class="auth-form">
                     <div class="field-group">
                         <label for="username">Identifiant</label>
-                        <input type="text" id="username" placeholder="Votre identifiant" spellcheck="false">
+                        <input type="text" id="username" placeholder="Votre identifiant" spellcheck="false" autocomplete="username">
                     </div>
                     <div class="field-group">
                         <label for="password">Mot de passe</label>
                         <div class="input-wrap">
-                            <input type="password" id="password" placeholder="••••••••">
+                            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
                             <button type="button" class="eye-btn" id="eye-btn" tabindex="-1">
                                 <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -40,14 +47,41 @@
                     <div id="login-error" class="error-msg hidden"></div>
                     <button type="submit" class="btn-login" id="login-btn">
                         <span id="login-btn-text">Connexion</span>
-                        <svg id="login-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                        <svg id="login-spinner" class="spinner hidden" width="18" height="18" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="60" stroke-dashoffset="20"/>
-                        </svg>
+                        <svg id="login-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        <svg id="login-spinner" class="spinner hidden" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="60" stroke-dashoffset="20"/></svg>
                     </button>
                 </form>
+
+                <!-- REGISTER FORM -->
+                <form id="register-form" class="auth-form hidden">
+                    <div class="field-group">
+                        <label for="reg-username">Identifiant</label>
+                        <input type="text" id="reg-username" placeholder="Choisissez un identifiant" spellcheck="false" autocomplete="off">
+                    </div>
+                    <div class="field-group">
+                        <label for="reg-name">Nom affiché</label>
+                        <input type="text" id="reg-name" placeholder="Votre prénom / pseudo" autocomplete="off">
+                    </div>
+                    <div class="field-group">
+                        <label for="reg-password">Mot de passe</label>
+                        <input type="password" id="reg-password" placeholder="6 caractères minimum" autocomplete="new-password">
+                    </div>
+                    <div class="field-group">
+                        <label for="reg-confirm">Confirmer le mot de passe</label>
+                        <input type="password" id="reg-confirm" placeholder="••••••••" autocomplete="new-password">
+                    </div>
+                    <div id="register-error" class="error-msg hidden"></div>
+                    <button type="submit" class="btn-login">
+                        <span>Créer mon compte</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                    <p class="register-note">Compte créé au niveau N1 — vous pourrez demander un accès supérieur une fois connecté.</p>
+                </form>
+
+                <!-- GUEST BUTTON -->
+                <button id="guest-btn" class="btn-guest">
+                    Continuer en tant qu'invité (N1)
+                </button>
 
                 <div class="login-footer">
                     <div class="level-row">
@@ -65,6 +99,11 @@
     <!-- ===== APP ===== -->
     <div id="app" class="hidden">
 
+        <!-- MAINTENANCE BANNER -->
+        <div id="maintenance-banner" class="maintenance-banner hidden">
+            <span>🔧 Mode maintenance activé — seuls les administrateurs peuvent naviguer.</span>
+        </div>
+
         <!-- HEADER -->
         <header id="app-header">
             <div class="header-left">
@@ -78,13 +117,22 @@
 
             <nav id="main-nav">
                 <a href="#dashboard" class="nav-link" data-section="dashboard">Accueil</a>
-                <a href="#diplomes" class="nav-link" data-section="diplomes" data-level="1">Diplômes</a>
-                <a href="#projets" class="nav-link" data-section="projets" data-level="2">Projets</a>
-                <a href="#stockage" class="nav-link" data-section="stockage" data-level="3">Stockage</a>
-                <a href="#test" class="nav-link" data-section="test" data-level="4">Test</a>
+                <a href="#diplomes"  class="nav-link" data-section="diplomes"  data-level="1">Diplômes</a>
+                <a href="#projets"   class="nav-link" data-section="projets"   data-level="2">Projets</a>
+                <a href="#stockage"  class="nav-link" data-section="stockage"  data-level="3">Stockage</a>
+                <a href="#test"      class="nav-link" data-section="test"      data-level="4">
+                    Admin
+                    <span id="admin-notif" class="notif-badge hidden">0</span>
+                </a>
             </nav>
 
             <div class="header-right">
+                <!-- Upgrade request button (non-admin, non-guest) -->
+                <button id="upgrade-btn" class="btn-upgrade hidden" title="Demander un niveau supérieur" onclick="App.showUpgradeModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                    Demander un accès
+                </button>
+
                 <div id="user-chip">
                     <span id="user-level-badge" class="level-badge"></span>
                     <span id="user-name-display"></span>
@@ -107,11 +155,14 @@
             </div>
             <nav class="sidebar-nav">
                 <a href="#dashboard" class="sidebar-link">🏠 Accueil</a>
-                <a href="#diplomes" class="sidebar-link" data-level="1">🎓 Diplômes</a>
-                <a href="#projets" class="sidebar-link" data-level="2">💡 Projets</a>
-                <a href="#stockage" class="sidebar-link" data-level="3">🗄️ Stockage</a>
-                <a href="#test" class="sidebar-link" data-level="4">⚙️ Test</a>
+                <a href="#diplomes"  class="sidebar-link" data-level="1">🎓 Diplômes</a>
+                <a href="#projets"   class="sidebar-link" data-level="2">💡 Projets</a>
+                <a href="#stockage"  class="sidebar-link" data-level="3">🗄️ Stockage</a>
+                <a href="#test"      class="sidebar-link" data-level="4">⚙️ Admin</a>
             </nav>
+            <button id="sidebar-upgrade" class="btn-upgrade-sidebar hidden" onclick="App.showUpgradeModal(); App.closeSidebar();">
+                ⬆ Demander un accès supérieur
+            </button>
             <button class="sidebar-logout" onclick="App.logout()">Se déconnecter</button>
         </aside>
         <div id="sidebar-overlay" class="hidden" onclick="App.closeSidebar()"></div>
@@ -120,6 +171,34 @@
         <main id="main-content">
             <div id="view-container"></div>
         </main>
+    </div>
+
+    <!-- ===== UPGRADE REQUEST MODAL ===== -->
+    <div id="upgrade-modal" class="modal-overlay hidden" onclick="if(event.target===this)App.hideUpgradeModal()">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">⬆ Demander un accès supérieur</h3>
+                <button class="icon-btn" onclick="App.hideUpgradeModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div id="upgrade-modal-body">
+                <div class="field-group" style="margin-bottom:14px;">
+                    <label>Niveau souhaité</label>
+                    <select class="inp" id="upgrade-level">
+                        <option value="2">Niveau 2 — Utilisateur (Projets)</option>
+                        <option value="3">Niveau 3 — Modérateur (Stockage)</option>
+                        <option value="4">Niveau 4 — Admin (Zone Admin)</option>
+                    </select>
+                </div>
+                <div class="field-group" style="margin-bottom:16px;">
+                    <label>Message à l'administrateur (optionnel)</label>
+                    <textarea class="inp" id="upgrade-message" rows="3" placeholder="Expliquez pourquoi vous avez besoin de cet accès…" style="resize:vertical;"></textarea>
+                </div>
+                <div id="upgrade-error" class="error-msg hidden" style="margin-bottom:12px;"></div>
+                <button class="btn primary" onclick="App.submitUpgradeRequest()">Envoyer la demande</button>
+            </div>
+        </div>
     </div>
 
     <!-- TOAST CONTAINER -->
