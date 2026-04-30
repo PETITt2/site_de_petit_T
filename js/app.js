@@ -477,23 +477,59 @@ const App = {
         }, 3200);
     },
 
-    // ── 3D Tilt effect ────────────────────────────────────────────────────────
+    // ── 3D Holographic Tilt ───────────────────────────────────────────────────
 
     initTilt() {
-        document.querySelectorAll('[data-tilt="1"], .diploma-card, .proj-card').forEach(el => {
-            // Clean up old listeners by cloning (lightweight approach)
+        const SEL = '.diploma-card, .proj-card, .sec-card:not(.locked), .site-card, .topic-card, [data-tilt="1"]';
+
+        document.querySelectorAll(SEL).forEach(el => {
+            // Inject shimmer overlay once
+            if (!el.querySelector('.card-shimmer')) {
+                const s = document.createElement('div');
+                s.className = 'card-shimmer';
+                el.appendChild(s);
+            }
+            const shimmer = el.querySelector('.card-shimmer');
+
+            const MAX = el.classList.contains('sec-card') ? 13 : 19;
+            const SC  = el.classList.contains('sec-card') ? 1.022 : 1.032;
+
             el.onmousemove = function(e) {
                 const r  = el.getBoundingClientRect();
-                const rx = ((e.clientY - r.top)  / r.height - 0.5) * -9;
-                const ry = ((e.clientX - r.left) / r.width  - 0.5) *  9;
-                el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.015)`;
-                el.style.boxShadow = `${-ry * 1.5}px ${rx * 1.5}px 30px rgba(0,0,0,.35)`;
-                el.style.transition = 'none';
+                const x  = (e.clientX - r.left) / r.width;
+                const y  = (e.clientY - r.top)  / r.height;
+                const rx = (y - 0.5) * -MAX;
+                const ry = (x - 0.5) *  MAX;
+
+                el.style.transition = 'transform .08s ease, box-shadow .08s ease';
+                el.style.transform  = `perspective(700px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(${SC},${SC},${SC})`;
+
+                // Shadow follows tilt direction
+                const sx = (-ry * 3.5).toFixed(1);
+                const sy = ( rx * 3.5).toFixed(1);
+                // Hue shifts: left=purple, center=blue, right=amber
+                const hue = Math.round(x * 280 + 200);
+                const gR  = hue > 420 ? 251 : hue > 320 ? 96 : 167;
+                const gG  = hue > 420 ? 191 : hue > 320 ? 165 : 139;
+                const gB  = hue > 420 ?  36 : hue > 320 ? 250 : 250;
+                el.style.boxShadow = `${sx}px ${sy}px 55px rgba(0,0,0,.52), 0 0 90px rgba(${gR},${gG},${gB},.22), inset 0 1px 0 rgba(255,255,255,.13)`;
+
+                // Holographic shimmer: specular + rainbow foil
+                const angle = Math.round(x * 360);
+                const px    = Math.round(x * 100);
+                const py    = Math.round(y * 100);
+                shimmer.style.background = [
+                    `radial-gradient(ellipse 52% 42% at ${px}% ${py}%, rgba(255,255,255,.26), transparent 62%)`,
+                    `linear-gradient(${angle}deg, rgba(255,60,130,.11), rgba(255,210,0,.09), rgba(0,220,255,.11), rgba(130,60,255,.12), rgba(60,255,160,.08))`,
+                ].join(',');
+                shimmer.style.opacity = '1';
             };
+
             el.onmouseleave = function() {
-                el.style.transition = 'transform .4s ease, box-shadow .4s ease';
-                el.style.transform  = '';
+                el.style.transition = 'transform .65s cubic-bezier(.03,.98,.52,.99), box-shadow .65s ease';
+                el.style.transform  = 'perspective(700px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)';
                 el.style.boxShadow  = '';
+                shimmer.style.opacity = '0';
             };
         });
     },
