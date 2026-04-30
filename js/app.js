@@ -514,13 +514,13 @@ const App = {
                 const gB  = hue > 420 ?  36 : hue > 320 ? 250 : 250;
                 el.style.boxShadow = `${sx}px ${sy}px 55px rgba(0,0,0,.52), 0 0 90px rgba(${gR},${gG},${gB},.22), inset 0 1px 0 rgba(255,255,255,.13)`;
 
-                // Holographic shimmer: specular + rainbow foil
-                const angle = Math.round(x * 360);
+                // Holographic shimmer: specular + cyan foil
+                const angle = Math.round(x * 280 + 140);
                 const px    = Math.round(x * 100);
                 const py    = Math.round(y * 100);
                 shimmer.style.background = [
-                    `radial-gradient(ellipse 52% 42% at ${px}% ${py}%, rgba(255,255,255,.26), transparent 62%)`,
-                    `linear-gradient(${angle}deg, rgba(255,60,130,.11), rgba(255,210,0,.09), rgba(0,220,255,.11), rgba(130,60,255,.12), rgba(60,255,160,.08))`,
+                    `radial-gradient(ellipse 50% 40% at ${px}% ${py}%, rgba(200,240,255,.3), transparent 60%)`,
+                    `linear-gradient(${angle}deg, rgba(0,212,255,.13), rgba(100,0,255,.1), rgba(0,255,180,.1), rgba(0,180,255,.12))`,
                 ].join(',');
                 shimmer.style.opacity = '1';
             };
@@ -534,7 +534,7 @@ const App = {
         });
     },
 
-    // ── Canvas background ─────────────────────────────────────────────────────
+    // ── Canvas background — cyber constellation ───────────────────────────────
 
     _initCanvas() {
         const canvas = document.getElementById('bg-canvas');
@@ -543,18 +543,15 @@ const App = {
 
         const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
 
-        const COLORS = [[245,158,11], [139,92,246], [59,130,246]];
-
         class Pt {
             constructor() { this.reset(true); }
             reset(full = false) {
                 this.x  = Math.random() * canvas.width;
                 this.y  = full ? Math.random() * canvas.height : (Math.random() > .5 ? -4 : canvas.height + 4);
-                this.vx = (Math.random() - .5) * .26;
-                this.vy = (Math.random() - .5) * .26;
-                this.r  = Math.random() * 1.3 + .3;
-                this.a  = Math.random() * .32 + .07;
-                this.c  = COLORS[Math.floor(Math.random() * COLORS.length)];
+                this.vx = (Math.random() - .5) * .18;
+                this.vy = (Math.random() - .5) * .18;
+                this.r  = Math.random() * .9 + .2;
+                this.a  = Math.random() * .28 + .05;
             }
             move() {
                 this.x += this.vx; this.y += this.vy;
@@ -563,25 +560,25 @@ const App = {
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
-                ctx.fillStyle = `rgba(${this.c},${this.a})`;
+                ctx.fillStyle = `rgba(0,212,255,${this.a})`;
                 ctx.fill();
             }
         }
 
         resize();
-        pts = Array.from({ length: Math.min(90, Math.floor(window.innerWidth/13)) }, () => new Pt());
+        pts = Array.from({ length: Math.min(70, Math.floor(window.innerWidth/16)) }, () => new Pt());
 
         const drawLines = () => {
             for (let i = 0; i < pts.length; i++)
                 for (let j = i+1; j < pts.length; j++) {
                     const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
                     const d  = Math.sqrt(dx*dx + dy*dy);
-                    if (d < 125) {
+                    if (d < 110) {
                         ctx.beginPath();
                         ctx.moveTo(pts[i].x, pts[i].y);
                         ctx.lineTo(pts[j].x, pts[j].y);
-                        ctx.strokeStyle = `rgba(139,92,246,${.042*(1-d/125)})`;
-                        ctx.lineWidth = .55;
+                        ctx.strokeStyle = `rgba(0,212,255,${.032*(1-d/110)})`;
+                        ctx.lineWidth = .4;
                         ctx.stroke();
                     }
                 }
